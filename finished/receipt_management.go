@@ -260,7 +260,7 @@ func (t *AssetManagementChaincode) Invoke(stub shim.ChaincodeStubInterface, func
 		return t.transfer(stub, args)
 	} else if function == "setCert" {
 		// Transfer ownership
-		return t.transfer(stub, args)
+		return t.setCert(stub, args)
 	}
 
 	return nil, errors.New("Received unknown function invocation")
