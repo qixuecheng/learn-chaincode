@@ -11,19 +11,19 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/core/crypto/primitives"
-	//"github.com/op/go-logging"
+	"github.com/op/go-logging"
 )
 
-//var //myLogger = logging.MustGetLogger("asset_mgm")
+//var myLogger = logging.MustGetLogger("asset_mgm")
 
 type AssetManagementChaincode struct {
 }
 
 // The deploy transaction metadata is supposed to contain the warehouse cert
 func (t *AssetManagementChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	////myLogger.Debug("Init Chaincode...")
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+	//myLogger.Debug("Init Chaincode...")
+	if len(args) != 0 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 0")
 	}
 
 	// Create ownership table
@@ -36,39 +36,42 @@ func (t *AssetManagementChaincode) Init(stub shim.ChaincodeStubInterface, functi
 		return nil, errors.New("Failed creating AssetsOnwership table.")
 	}
 
-	// Set the warehouse
-	// The metadata will contain the certificate of the warehouse
-	warehouseCert, err := stub.GetCallerMetadata()
-	if err != nil {
-		////myLogger.Debug("Failed getting metadata")
-		return nil, errors.New("Failed getting metadata.")
-	}
-	if len(warehouseCert) == 0 {
-		////myLogger.Debug("Invalid warehouse certificate. Empty.")
-		return nil, errors.New("Invalid warehouse certificate. Empty.")
+	return nil, nil
+}
+
+func (t *AssetManagementChaincode) setCert(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	//myLogger.Debug("Set Cert...")
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2")
 	}
 
-	////myLogger.Debugf("The warehouse is [% x]", warehouseCert)
+	// Set the warehouse
+	warehouseCert, err := base64.StdEncoding.DecodeString(args[0])
+	if err != nil {
+		return nil, errors.New("Failed decoding warehouseCert")
+	}
+
+	//myLogger.Debugf("The warehouse is [% x]", warehouseCert)
 
 	stub.PutState("warehouse", warehouseCert)
 	
 	// Set the warehouse2
-    warehouseCert2, err := base64.StdEncoding.DecodeString(args[0])
+    warehouseCert2, err := base64.StdEncoding.DecodeString(args[1])
 	if err != nil {
 		return nil, errors.New("Failed decoding warehouseCert2")
 	}
 
-	////myLogger.Debugf("The warehouse2 is [% x]", warehouseCert2)
+	//myLogger.Debugf("The warehouse2 is [% x]", warehouseCert2)
 
 	stub.PutState("warehouse2", warehouseCert2)
 
-	////myLogger.Debug("Init Chaincode...done")
+	//myLogger.Debug("Set Cert...done")
 
 	return nil, nil
 }
 
 func (t *AssetManagementChaincode) assign(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	////myLogger.Debug("Assign...")
+	//myLogger.Debug("Assign...")
 
 	if len(args) != 4 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
@@ -98,7 +101,7 @@ func (t *AssetManagementChaincode) assign(stub shim.ChaincodeStubInterface, args
 	}
 
 	// Register assignment
-	////myLogger.Debugf("New owner of [%s] is [% x]", receiptId, owner)
+	//myLogger.Debugf("New owner of [%s] is [% x]", receiptId, owner)
 
 	ok, err = stub.InsertRow("AssetsOwnership", shim.Row{
 		Columns: []*shim.Column{
@@ -111,13 +114,13 @@ func (t *AssetManagementChaincode) assign(stub shim.ChaincodeStubInterface, args
 		return nil, errors.New("Receipt has already existed.")
 	}
 
-	////myLogger.Debug("Assign...done!")
+	//myLogger.Debug("Assign...done!")
 
 	return nil, err
 }
 
 func (t *AssetManagementChaincode) transfer(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	////myLogger.Debug("Transfer...")
+	//myLogger.Debug("Transfer...")
 
 	if len(args) != 3 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 3")
@@ -253,6 +256,9 @@ func (t *AssetManagementChaincode) Invoke(stub shim.ChaincodeStubInterface, func
 		// Assign ownership
 		return t.assign(stub, args)
 	} else if function == "transfer" {
+		// Transfer ownership
+		return t.transfer(stub, args)
+	} else if function == "setCert" {
 		// Transfer ownership
 		return t.transfer(stub, args)
 	}
