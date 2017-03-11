@@ -21,7 +21,7 @@ type AssetManagementChaincode struct {
 
 // The deploy transaction metadata is supposed to contain the warehouse cert
 func (t *AssetManagementChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	myLogger.Debug("Init Chaincode...")
+	fmt.Printf("Init Chaincode...")
 	if len(args) != 0 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 0")
 	}
@@ -40,7 +40,7 @@ func (t *AssetManagementChaincode) Init(stub shim.ChaincodeStubInterface, functi
 }
 
 func (t *AssetManagementChaincode) setCert(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	myLogger.Debug("Set Cert...")
+	fmt.Printf("Set Cert...")
 	if len(args) != 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2")
 	}
@@ -65,13 +65,13 @@ func (t *AssetManagementChaincode) setCert(stub shim.ChaincodeStubInterface, arg
 
 	stub.PutState("warehouse2", warehouseCert2)
 
-	myLogger.Debug("Set Cert...done")
+	fmt.Printf("Set Cert...done")
 
 	return nil, nil
 }
 
 func (t *AssetManagementChaincode) assign(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	myLogger.Debug("Assign...")
+	fmt.Printf("Assign...")
 
 	if len(args) != 4 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
@@ -114,13 +114,13 @@ func (t *AssetManagementChaincode) assign(stub shim.ChaincodeStubInterface, args
 		return nil, errors.New("Receipt has already existed.")
 	}
 
-	myLogger.Debug("Assign...done!")
+	fmt.Printf("Assign...done!")
 
 	return nil, err
 }
 
 func (t *AssetManagementChaincode) transfer(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	myLogger.Debug("Transfer...")
+	fmt.Printf("Transfer...")
 
 	if len(args) != 3 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 3")
@@ -188,13 +188,13 @@ func (t *AssetManagementChaincode) transfer(stub shim.ChaincodeStubInterface, ar
 
 	fmt.Printf("New owner of [%s] is [% x]", asset, newOwner)
 
-	myLogger.Debug("Transfer...done")
+	fmt.Printf("Transfer...done")
 
 	return nil, nil
 }
 
 func (t *AssetManagementChaincode) isCaller(stub shim.ChaincodeStubInterface, certificate []byte) (bool, error) {
-	myLogger.Debug("Check caller...")
+	fmt.Printf("Check caller...")
 
 	// In order to enforce access control, we require that the
 	// metadata contains the signature under the signing key corresponding
@@ -229,15 +229,15 @@ func (t *AssetManagementChaincode) isCaller(stub shim.ChaincodeStubInterface, ce
 		append(payload, binding...),
 	)
 	if err != nil {
-		myLogger.Errorf("Failed checking signature [%s]", err)
+		fmt.Printf("Failed checking signature [%s]", err)
 		return ok, err
 	}
 	if !ok {
-		myLogger.Error("Invalid signature!!!")
+		fmt.Printf("Invalid signature!!!")
 		return ok, err
 	}
 
-	myLogger.Debug("Check caller...Verified!")
+	fmt.Printf("Check caller...Verified!")
 
 	return ok, err
 }
@@ -280,7 +280,7 @@ func (t *AssetManagementChaincode) Query(stub shim.ChaincodeStubInterface, funct
 	var err error
 
 	if len(args) != 2 {
-		myLogger.Debug("Incorrect number of arguments. Expecting 2")
+		fmt.Printf("Incorrect number of arguments. Expecting 2")
 		return nil, errors.New("Incorrect number of arguments. Expecting 2")
 	}
 
@@ -319,6 +319,6 @@ func main() {
 	primitives.SetSecurityLevel("SHA3", 256)
 	err := shim.Start(new(AssetManagementChaincode))
 	if err != nil {
-		fmt.Printf()f("Error starting AssetManagementChaincode: %s", err)
+		fmt.Printf("Error starting AssetManagementChaincode: %s", err)
 	}
 }
