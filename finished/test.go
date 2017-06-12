@@ -23,7 +23,6 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"strings"
 	"strconv"
-	"unsafe"
 )
 
 // SimpleChaincode example simple Chaincode implementation
