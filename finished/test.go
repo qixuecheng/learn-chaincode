@@ -21,6 +21,9 @@ import (
 	"fmt"
 	"encoding/json"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"strings"
+	"strconv"
+	"unsafe"
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -33,12 +36,9 @@ func main() {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
 }
-type Location struct {
+type Bill struct {
 	Id string
-	Status string
-	locx string
-	locy string
-
+	Content string
 }
 // Init resets all the things
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -70,7 +70,8 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	// Handle different functions
 	if function == "read" { //read a variable
 		return t.read(stub, args)
-	}
+	}else if function == "readones"{
+		return t.readones(stub, args)}
 	fmt.Println("query did not find func: " + function)
 
 	return nil, errors.New("Received unknown function query")
@@ -78,21 +79,20 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 // write - invoke function to write key/value pair
 func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string) ([]byte,error) {
-	if len(args) != 4{
+	if len(args) != 2{
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
 	var err error
-	str1:=args[1]+","+args[2]+","+args[3]
-	location := Location {Id:args[0],Status:str1,locx:args[2],locy:args[3]}
-	
-	locationlBytes,err:= json.Marshal(&location)
-	
+	bill := Bill {Id:args[0],Content:args[1]}
+
+	locationlBytes,err:= json.Marshal(&bill)
+
 	str := string(locationlBytes[:])
-    fmt.Println(str)
+	fmt.Println(str)
 	if err != nil{
 		fmt.Print(err)
 	}
-	err = stub.PutState(location.Id,locationlBytes)
+	err = stub.PutState(bill.Id,locationlBytes)
 	if err !=nil{
 		return nil,errors.New("PutState Error" + err.Error())
 	}
@@ -114,4 +114,30 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 	}
 
 	return valAsbytes, nil
+}
+func (t *SimpleChaincode) readones(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var Resp string
+	var err error
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting name of the key to query")
+	}
+	key := args[0]
+	params := strings.Split(key, ",")
+	for i,x:= range params {
+		valAsbytes, err := stub.GetState(x)
+		Resp = Resp + convert(valAsbytes)+","
+	}
+	if err != nil {
+		Resp = "{\"Error\":\"Failed to get state for " + key + "\"}"
+		return nil, errors.New(Resp)
+	}
+	Respbytes :=[]byte(Resp)
+	return Respbytes, nil
+}
+func convert(b []byte ) string {
+	s := make([]string,len(b))
+	for i := range b {
+		s[i] = strconv.Itoa(int(b[i]))
+	}
+	return strings.Join(s,",")
 }
