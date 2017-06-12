@@ -125,7 +125,7 @@ func (t *SimpleChaincode) readones(stub shim.ChaincodeStubInterface, args []stri
 		valAsbytes, err := stub.GetState(params[i])
 		if err != nil {
 			_Resp := "{\"Error\":\"Failed to get state for " + key + "\"}"
-			return nil,_Resp
+			return nil,err
 		}
 		Resp = BytesCombine(Resp,valAsbytes)
 	}
