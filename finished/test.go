@@ -124,11 +124,11 @@ func (t *SimpleChaincode) readones(stub shim.ChaincodeStubInterface, args []stri
 	params := strings.Split(key, ",")
 	for i,x:= range params {
 		valAsbytes, err := stub.GetState(x)
+		if err != nil {
+			Resp = "{\"Error\":\"Failed to get state for " + key + "\"}"
+			return nil, errors.New(Resp)
+		}
 		Resp = Resp + convert(valAsbytes)+","
-	}
-	if err != nil {
-		Resp = "{\"Error\":\"Failed to get state for " + key + "\"}"
-		return nil, errors.New(Resp)
 	}
 	Respbytes :=[]byte(Resp)
 	return Respbytes, nil
