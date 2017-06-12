@@ -116,13 +116,12 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 }
 func (t *SimpleChaincode) readones(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var Resp string
-	var err error
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the key to query")
 	}
 	key := args[0]
 	params := strings.Split(key, ",")
-	for i,x:= range params {
+	for _,x:= range params {
 		valAsbytes, err := stub.GetState(x)
 		if err != nil {
 			Resp = "{\"Error\":\"Failed to get state for " + key + "\"}"
