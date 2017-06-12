@@ -123,12 +123,11 @@ func (t *SimpleChaincode) readones(stub shim.ChaincodeStubInterface, args []stri
 	for i,_:= range params {
 		valAsbytes, err := stub.GetState(params[i])
 		if err != nil {
-			
 			return nil,err
 		}
 		Resp = BytesCombine(Resp,valAsbytes)
 	}
-	return Resp, nil
+	return Resp[1:], nil
 }
 func BytesCombine(pBytes ...[]byte) []byte {
 	return bytes.Join(pBytes, []byte(","))
