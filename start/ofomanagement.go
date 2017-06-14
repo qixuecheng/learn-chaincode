@@ -36,9 +36,6 @@ func main() {
 type Location struct {
 	Id string
 	Status string
-	locx string
-	locy string
-
 }
 // Init resets all the things
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -82,12 +79,11 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
 	var err error
-	location := Location {Id:args[0],Status:args[1]+","args[2]+","+args[3],locx:args[2],locy:args[3]}
+	str := args[1]+","+args[2]+","+args[3]
+	location := Location {Id:args[0],Status:str}
 	
 	locationlBytes,err:= json.Marshal(&location)
 	
-	str := string(locationlBytes[:])
-    fmt.Println(str)
 	if err != nil{
 		fmt.Print(err)
 	}
