@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"encoding/json"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"bytes"
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -67,6 +68,8 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	// Handle different functions
 	if function == "read" { //read a variable
 		return t.read(stub, args)
+	}else if function == "readall"{
+		return t.readall(stub, args)
 	}
 	fmt.Println("query did not find func: " + function)
 
@@ -78,16 +81,27 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 	if len(args) != 4{
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
+	key := args[0]
 	var err error
 	str := args[1]+","+args[2]+","+args[3]
 	location := Location {Id:args[0],Status:str}
 	
 	locationlBytes,err:= json.Marshal(&location)
-	
 	if err != nil{
 		fmt.Print(err)
 	}
-	err = stub.PutState(location.Id,locationlBytes)
+	existLoc, err := stub.GetState(key)
+	if err != nil {
+		jsonResp := "{\"Error\":\"Failed to get state for " + key + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+	err = stub.PutState(location.Id+"xx",locationlBytes)
+	if len(existLoc) == 0{
+		err = stub.PutState(location.Id,locationlBytes)
+	}else {
+		alllocationlBytes := BytesCombine(existLoc,locationlBytes)
+		err = stub.PutState(location.Id,alllocationlBytes)
+			}
 	if err !=nil{
 		return nil,errors.New("PutState Error" + err.Error())
 	}
@@ -102,6 +116,21 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the key to query")
 	}
 	key = args[0]
+	valAsbytes, err := stub.GetState(key+"xx")
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + key + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+	return valAsbytes, nil
+}
+//read all
+func (t *SimpleChaincode) readall(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var key, jsonResp string
+	var err error
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting name of the key to query")
+	}
+	key = args[0]
 	valAsbytes, err := stub.GetState(key)
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + key + "\"}"
@@ -110,3 +139,7 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 
 	return valAsbytes, nil
 }
+func BytesCombine(pBytes ...[]byte) []byte {
+	return bytes.Join(pBytes, []byte(","))
+}
+
